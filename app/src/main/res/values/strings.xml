@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">FireBase</string>
+    <string name="phone_number">enter your phone number</string>
+    <string name="phone_code">+996</string>
+    <string name="number_format">555123123</string>
+    <string name="next">Продолжить</string>
+    <string name="code_text">Enter the code what you received</string>
+</resources>
