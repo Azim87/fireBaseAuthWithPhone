@@ -5,4 +5,7 @@
     <string name="number_format">555123123</string>
     <string name="next">Продолжить</string>
     <string name="code_text">Enter the code what you received</string>
+    
+    <string name="navigation_drawer_open">Open avigation drawer</string>
+    <string name="navigation_drawer_close">Close avigation drawer</string>
 </resources>
