@@ -1,4 +1,4 @@
-package com.example.firebase;
+package com.example.firebase.main;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -9,16 +9,11 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.Intent;
-import android.icu.lang.UCharacter;
 import android.os.Bundle;
-import android.provider.Telephony;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -27,6 +22,8 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.firebase.ProfileActivity;
+import com.example.firebase.R;
 import com.example.firebase.models.CountryCode;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -39,7 +36,6 @@ import com.google.firebase.auth.PhoneAuthProvider;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import static android.view.View.VISIBLE;
@@ -55,6 +51,8 @@ public class MainActivity extends AppCompatActivity {
     private Spinner countryCodeSpinner;
     private DrawerLayout drawerLayout;
     private ProgressDialog progressDialog;
+
+    NavigationView navigationView;
 
     PhoneAuthProvider.OnVerificationStateChangedCallbacks mCallBack;
     List<CountryCode> countryCodes;
@@ -79,12 +77,11 @@ public class MainActivity extends AppCompatActivity {
 
         phoneCodeEditText.setFocusable(false);
 
-
         countryCodes = new ArrayList<>();
-        countryCodes.add(new CountryCode("KYRGYZSTAN","+996"));
-        countryCodes.add(new CountryCode("RUSSIA ",  "+7"));
-        countryCodes.add(new CountryCode("UZBEKISTAN ",  "+998"));
-        countryCodes.add(new CountryCode("KAZAKHSTAN ",  "+7"));
+        countryCodes.add(new CountryCode("KYRGYZSTAN  ","(+996)"));
+        countryCodes.add(new CountryCode("RUSSIA  ",  "(+7)"));
+        countryCodes.add(new CountryCode("UZBEKISTAN  ",  "(+998)"));
+        countryCodes.add(new CountryCode("KAZAKHSTAN  ",  "(+7)"));
 
         ArrayAdapter<CountryCode>countryCodeAdapter = new ArrayAdapter<CountryCode>(
                 MainActivity.this, android.R.layout.simple_spinner_item, countryCodes){
@@ -119,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
         drawerLayout.addDrawerListener(toggle);
         toggle.syncState();
 
-        NavigationView navigationView = findViewById(R.id.nav_view);
+        navigationView = findViewById(R.id.nav_view);
         View headerView = navigationView.getHeaderView(0);
         headerView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -128,6 +125,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        showUserInfo(headerView);
         progressDialog = new ProgressDialog(this);
 
         mCallBack = new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
@@ -165,7 +163,6 @@ public class MainActivity extends AppCompatActivity {
             super.onBackPressed();
         }
     }
-
 
     private void signIn(PhoneAuthCredential phoneAuthCredential) {
         FirebaseAuth.getInstance().signInWithCredential(phoneAuthCredential)
@@ -223,6 +220,18 @@ public class MainActivity extends AppCompatActivity {
             hideSmsSendViews();
         }
     }
+
+  private void showUserInfo(View view){
+      Intent data = getIntent();
+      String userName = data.getStringExtra("name");
+      String userLastName = data.getStringExtra("lastName");
+
+      TextView textViewName = view.findViewById(R.id.user_name);
+      TextView textViewLastName = view.findViewById(R.id.user_lastName);
+
+      textViewName.setText(userName);
+      textViewLastName.setText(userLastName);
+  }
 
     private void hideSmsSendViews() {
         phoneCodeEditText.setVisibility(View.GONE);
