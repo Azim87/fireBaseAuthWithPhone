@@ -3,7 +3,6 @@ package com.example.firebase;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -13,6 +12,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -39,9 +39,9 @@ public class ProfileActivity extends AppCompatActivity {
     private EditText emailEditText;
     private Button saveButton;
     private ImageView profileImageView;
+    private ProgressBar progressBar;
     Uri uri;
 
-    @SuppressLint("SetTextI18n")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,7 +54,6 @@ public class ProfileActivity extends AppCompatActivity {
         String names = prefs.getString("save_name", "Hello, User!");
         mainInfoTV.setText(" Привет, " + names);
         Log.d("ololo", "getSharedName" + names);
-
     }
 
     private void initViews() {
@@ -63,6 +62,7 @@ public class ProfileActivity extends AppCompatActivity {
         emailEditText = findViewById(R.id.lastName_edit_text);
         saveButton = findViewById(R.id.save_button);
         profileImageView = findViewById(R.id.profile_image_view);
+        progressBar = findViewById(R.id.show_loading_process);
     }
 
     //region GetUserInfo
@@ -88,6 +88,7 @@ public class ProfileActivity extends AppCompatActivity {
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         Toast.makeText(this, "Успешно", Toast.LENGTH_SHORT).show();
+                        progressBar.setVisibility(View.GONE);
                     } else {
                         Toaster.showMessage("Неуспешно!");
                     }
@@ -114,7 +115,6 @@ public class ProfileActivity extends AppCompatActivity {
                 editor.putString("avatar", avatar);
                 editor.apply();
                 Log.d("ololo", "onSaveShared" + name + email + avatar);
-
             }
         });
 
@@ -129,8 +129,8 @@ public class ProfileActivity extends AppCompatActivity {
 
     private void saveOnButtonClock() {
         saveButton.setOnClickListener((View v) -> {
+            progressBar.setVisibility(View.VISIBLE);
             setDataToFireBase();
-
         });
     }
 

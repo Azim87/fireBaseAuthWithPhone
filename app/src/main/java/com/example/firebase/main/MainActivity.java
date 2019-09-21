@@ -73,6 +73,14 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        SharedPreferences prefs = getSharedPreferences("save_user_info", MODE_PRIVATE);
+        String names = prefs.getString("save_name", "Hello, User!");
+        String email = prefs.getString("save_email", null);
+        String avatar = prefs.getString("avatar", null);
+
+
+
+
         /* Init views*/
         Toolbar toolbar = findViewById(R.id.toolBar);
         drawerLayout = findViewById(R.id.drawer_layout);
@@ -129,19 +137,10 @@ public class MainActivity extends AppCompatActivity {
         nameTextView = headerView.findViewById(R.id.user_name);
         emailTextView = headerView.findViewById(R.id.user_email);
         avatarImageView = headerView.findViewById(R.id.avatar_image_view);
-
-        SharedPreferences prefs = getSharedPreferences("save_user_info", MODE_PRIVATE);
-        String names = prefs.getString("save_name", "Hello, User!");
-        String email = prefs.getString("save_email", null);
-        String avatar = prefs.getString("avatar", null);
-
-
         nameTextView.setText(names);
         emailTextView.setText(email);
         Glide.with(this).load(avatar).apply(RequestOptions.circleCropTransform()).into(avatarImageView);
         Log.d("ohoho", "mainActivityShared " + avatar);
-
-
         progressDialog = new ProgressDialog(this);
         mCallBack = new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
             @Override
