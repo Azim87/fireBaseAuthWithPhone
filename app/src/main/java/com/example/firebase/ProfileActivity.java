@@ -2,7 +2,10 @@ package com.example.firebase;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+
+import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -20,6 +23,8 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -36,6 +41,7 @@ public class ProfileActivity extends AppCompatActivity {
     private ImageView profileImageView;
     Uri uri;
 
+    @SuppressLint("SetTextI18n")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -43,6 +49,11 @@ public class ProfileActivity extends AppCompatActivity {
         initViews();
         saveOnButtonClock();
         readDataFromFireBase();
+
+        SharedPreferences prefs = getSharedPreferences("save_user_info", MODE_PRIVATE);
+        String names = prefs.getString("save_name", "Hello, User!");
+        mainInfoTV.setText(" Привет, " + names);
+        Log.d("ololo", "getSharedName" + names);
 
     }
 
@@ -60,9 +71,7 @@ public class ProfileActivity extends AppCompatActivity {
             Toast.makeText(this, "name and last name are empty!", Toast.LENGTH_LONG).show();
         } else {
             uploadImage();
-
         }
-
     }
 
     private void saveUser(Uri downloadUrl){
@@ -78,6 +87,7 @@ public class ProfileActivity extends AppCompatActivity {
                 .set(map)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
+                        Toast.makeText(this, "Успешно", Toast.LENGTH_SHORT).show();
                     } else {
                         Toaster.showMessage("Неуспешно!");
                     }
@@ -94,11 +104,17 @@ public class ProfileActivity extends AppCompatActivity {
                 String name = task.getResult().getString("name");
                 String email = task.getResult().getString("email");
                 String avatar = task.getResult().getString("avatar");
-
-                
                 nameEditText.setText(name);
                 emailEditText.setText(email);
                 showAvatar(avatar);
+
+                SharedPreferences.Editor editor = getSharedPreferences("save_user_info", MODE_PRIVATE).edit();
+                editor.putString("save_name", name);
+                editor.putString("save_email", email);
+                editor.putString("avatar", avatar);
+                editor.apply();
+                Log.d("ololo", "onSaveShared" + name + email + avatar);
+
             }
         });
 
@@ -114,6 +130,7 @@ public class ProfileActivity extends AppCompatActivity {
     private void saveOnButtonClock() {
         saveButton.setOnClickListener((View v) -> {
             setDataToFireBase();
+
         });
     }
 
@@ -137,14 +154,14 @@ public class ProfileActivity extends AppCompatActivity {
         SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.getDefault());
 
         final StorageReference ref = FirebaseStorage.getInstance().getReference().child("avatars/" + sdf.format(date) + " avatars.jpg" );
-        Task<Uri> task = ref.putFile(uri).continueWithTask(task12 -> {
-            if (task12.isSuccessful()){
+        Task<Uri> task = ref.putFile(uri).continueWithTask((Task<UploadTask.TaskSnapshot> tasks) -> {
+            if (tasks.isSuccessful()){
                 return ref.getDownloadUrl();
             }
             return null;
-        }).addOnCompleteListener(task1 -> {
-            if (task1.isSuccessful()){
-                Uri downloadUrl = task1.getResult();
+        }).addOnCompleteListener(tasks -> {
+            if (tasks.isSuccessful()){
+                Uri downloadUrl = tasks.getResult();
                 Log.e("ololo", "url " + downloadUrl);
                 saveUser(downloadUrl);
             }else{

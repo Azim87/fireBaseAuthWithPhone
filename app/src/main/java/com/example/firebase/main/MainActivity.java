@@ -10,6 +10,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -19,10 +20,13 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.example.firebase.ProfileActivity;
 import com.example.firebase.R;
 import com.example.firebase.SecondActivity;
@@ -45,6 +49,10 @@ import static android.view.View.VISIBLE;
 
 public class MainActivity extends AppCompatActivity {
     private TextView infoTextView;
+    private TextView nameTextView;
+    private TextView emailTextView;
+    private ImageView avatarImageView;
+
     private EditText phoneNumberEditText;
     private EditText phoneCodeEditText;
     private EditText codeVerifyEditText;
@@ -118,6 +126,22 @@ public class MainActivity extends AppCompatActivity {
         navigationView = findViewById(R.id.nav_view);
         View headerView = navigationView.getHeaderView(0);
         headerView.setOnClickListener(v -> startActivity(new Intent(getApplicationContext(), ProfileActivity.class)));
+        nameTextView = headerView.findViewById(R.id.user_name);
+        emailTextView = headerView.findViewById(R.id.user_email);
+        avatarImageView = headerView.findViewById(R.id.avatar_image_view);
+
+        SharedPreferences prefs = getSharedPreferences("save_user_info", MODE_PRIVATE);
+        String names = prefs.getString("save_name", "Hello, User!");
+        String email = prefs.getString("save_email", null);
+        String avatar = prefs.getString("avatar", null);
+
+
+        nameTextView.setText(names);
+        emailTextView.setText(email);
+        Glide.with(this).load(avatar).apply(RequestOptions.circleCropTransform()).into(avatarImageView);
+        Log.d("ohoho", "mainActivityShared " + avatar);
+
+
         progressDialog = new ProgressDialog(this);
         mCallBack = new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
             @Override
