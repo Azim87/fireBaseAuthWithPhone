@@ -8,17 +8,28 @@
     android:layout_height="match_parent"
     tools:context=".ProfileActivity">
 
+
+
     <TextView
         android:id="@+id/main_info_tv"
         android:text="Hello, user!"
         android:textAppearance="@style/TextAppearance.MaterialComponents.Body1"
         android:gravity="center_horizontal|center_vertical"
+        android:layout_margin="10dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
 
+    <ImageView
+        android:id="@+id/profile_image_view"
+        android:layout_gravity="center_horizontal"
+        android:onClick="onClickOpenGallery"
+        android:src="@drawable/ic_perm_identity_black_24dp"
+        android:layout_width="100dp"
+        android:layout_height="100dp"/>
+
     <EditText
         android:id="@+id/name_edit_text"
-        android:hint="name"
+        android:hint="name and last name"
         android:paddingLeft="8dp"
         android:layout_margin="8dp"
         android:layout_width="match_parent"
@@ -26,7 +37,7 @@
 
     <EditText
         android:id="@+id/lastName_edit_text"
-        android:hint="last name"
+        android:hint="email"
         android:paddingLeft="8dp"
         android:layout_margin="8dp"
         android:layout_width="match_parent"

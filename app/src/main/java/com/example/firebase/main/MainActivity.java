@@ -10,6 +10,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -24,6 +25,8 @@ import android.widget.Toast;
 
 import com.example.firebase.ProfileActivity;
 import com.example.firebase.R;
+import com.example.firebase.SecondActivity;
+import com.example.firebase.Toaster;
 import com.example.firebase.models.CountryCode;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -47,15 +50,14 @@ public class MainActivity extends AppCompatActivity {
     private EditText codeVerifyEditText;
     private Button verifyButton;
     private Button nextButton;
-    private String verify;
     private Spinner countryCodeSpinner;
     private DrawerLayout drawerLayout;
     private ProgressDialog progressDialog;
-
-    NavigationView navigationView;
-
-    PhoneAuthProvider.OnVerificationStateChangedCallbacks mCallBack;
-    List<CountryCode> countryCodes;
+    private NavigationView navigationView;
+    private String verificationId;
+    PhoneAuthProvider.ForceResendingToken resendToken;
+    private PhoneAuthProvider.OnVerificationStateChangedCallbacks mCallBack;
+    private List<CountryCode> countryCodes;
 
 
     @Override
@@ -65,7 +67,6 @@ public class MainActivity extends AppCompatActivity {
 
         /* Init views*/
         Toolbar toolbar = findViewById(R.id.toolBar);
-
         drawerLayout = findViewById(R.id.drawer_layout);
         countryCodeSpinner = findViewById(R.id.country_code_spinner);
         phoneNumberEditText = findViewById(R.id.edit_phone_number);
@@ -74,7 +75,6 @@ public class MainActivity extends AppCompatActivity {
         codeVerifyEditText = findViewById(R.id.code_verification_editText);
         verifyButton = findViewById(R.id.verify_button);
         nextButton = findViewById(R.id.next_button);
-
         phoneCodeEditText.setFocusable(false);
 
         countryCodes = new ArrayList<>();
@@ -109,7 +109,6 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         /* Drawer layout */
-
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar,
                 R.string.navigation_drawer_open,
                 R.string.navigation_drawer_close);
@@ -118,19 +117,12 @@ public class MainActivity extends AppCompatActivity {
 
         navigationView = findViewById(R.id.nav_view);
         View headerView = navigationView.getHeaderView(0);
-        headerView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(getApplicationContext(), ProfileActivity.class));
-            }
-        });
-
-        showUserInfo(headerView);
+        headerView.setOnClickListener(v -> startActivity(new Intent(getApplicationContext(), ProfileActivity.class)));
         progressDialog = new ProgressDialog(this);
-
         mCallBack = new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
             @Override
             public void onVerificationCompleted(@NonNull PhoneAuthCredential phoneAuthCredential) {
+                verificationId = phoneAuthCredential.getSmsCode();
                 signIn(phoneAuthCredential);
             }
 
@@ -140,19 +132,11 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onCodeSent(@NonNull String verification, @NonNull PhoneAuthProvider.ForceResendingToken forceResendingToken) {
-                PhoneAuthCredential credential = PhoneAuthProvider.getCredential(verification, verify);
-                credential.getSmsCode();
-                verify = verification;
+                verificationId = verification;
+                resendToken = forceResendingToken;
             }
         };
         verifyCode();
-        verifyButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                verify = codeVerifyEditText.getText().toString().trim();
-                Log.d("ololo", "verify " + verify);
-            }
-        });
     }
 
     @Override
@@ -164,31 +148,31 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void signIn(PhoneAuthCredential phoneAuthCredential) {
+    private void signIn(final PhoneAuthCredential phoneAuthCredential) {
         FirebaseAuth.getInstance().signInWithCredential(phoneAuthCredential)
-                .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
-                            Toast.makeText(MainActivity.this, "Successful", Toast.LENGTH_SHORT).show();
-                        } else {
-                            Toast.makeText(MainActivity.this, "Unsuccessful", Toast.LENGTH_SHORT).show();
-                        }
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        Toaster.showMessage("Успешно!");
+                        startActivity(new Intent(MainActivity.this, ProfileActivity.class));
+                        finish();
+
+                    } else {
+                        Toaster.showMessage("Не успешно!");
                     }
                 });
     }
 
     public void OnPhoneButtonClick(View view) {
-        progressDialog.setMessage("Sending verifying code...");
-        progressDialog.show();
+        /*progressDialog.setMessage("Sending verifying code...");
+        progressDialog.show();*/
 
         String phoneNumber = phoneCodeEditText.getText().toString().trim() +
                 phoneNumberEditText.getText().toString().trim();
 
-        Log.d("ololo", "onButtonClick " + phoneNumber);
 
         if (phoneNumber.isEmpty()) {
-            Toast.makeText(this, "You have to enter your phone number!", Toast.LENGTH_SHORT).show(); }
+            Toaster.showMessage("You have to enter your phone number!");
+        }
 
         if (phoneNumberEditText.getText() != null || phoneCodeEditText != null) {
             phoneNumberEditText.getText().clear();
@@ -196,10 +180,6 @@ public class MainActivity extends AppCompatActivity {
 
         if (TextUtils.isEmpty(phoneNumber)) {
             phoneNumberEditText.setError("Укажите номер телефона!");
-            return; }
-
-        if (TextUtils.isEmpty(phoneNumber)) {
-            phoneCodeEditText.setError("Укажите код страны!");
             return; }
 
         onCodeVerification();
@@ -221,18 +201,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-  private void showUserInfo(View view){
-      Intent data = getIntent();
-      String userName = data.getStringExtra("name");
-      String userLastName = data.getStringExtra("lastName");
-
-      TextView textViewName = view.findViewById(R.id.user_name);
-      TextView textViewLastName = view.findViewById(R.id.user_lastName);
-
-      textViewName.setText(userName);
-      textViewLastName.setText(userLastName);
-  }
-
     private void hideSmsSendViews() {
         phoneCodeEditText.setVisibility(View.GONE);
         phoneNumberEditText.setVisibility(View.GONE);
@@ -242,11 +210,10 @@ public class MainActivity extends AppCompatActivity {
 
     }
     private void verifyCode(){
-        verifyButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-            }
+        verifyButton.setOnClickListener(v -> {
+            String code = codeVerifyEditText.getText().toString();
+            PhoneAuthCredential credential = PhoneAuthProvider.getCredential(verificationId, code);
+            signIn(credential);
         });
     }
 }
